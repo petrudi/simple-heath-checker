@@ -32,6 +32,20 @@ Edit `config.yaml` and add your services.
     go run main.go
     ```
 
+4. **How to install on linux**
+    ```bash
+    mkdir -p ~/.health-checker
+    cp config.sample.yaml ~/.health-checker/config.yaml
+    ```
+    run it using the following command:
+    ```bash
+    health-checker
+    #or
+    health-checker -c /path/to/config.yaml
+    ```
+
+
+
 **Note**
 Your real config.yaml is ignored via .gitignore for safety.
 

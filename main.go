@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -56,7 +57,6 @@ func checkTCP(service string) (bool, string) {
 }
 
 func checkPing(host string) (bool, string) {
-	// Try "ping -c 1 -W 2 <host>"
 	out, err := exec.Command("ping", "-c", "1", "-W", "2", host).Output()
 	if err != nil {
 		return false, err.Error()
@@ -111,9 +111,32 @@ func checkService(service string) Result {
 }
 
 func main() {
-	config, err := loadConfig("config.yaml")
-	if err != nil {
-		fmt.Println("Error reading config:", err)
+	configFlag := flag.String("c", "", "Path to config file (optional). Defaults to ~/.health-checker/config.yaml or ./config.yaml")
+	flag.Parse()
+
+	// Resolve config path
+	var configPaths []string
+	if *configFlag != "" {
+		configPaths = append(configPaths, *configFlag)
+	} else {
+		homeDir, err := os.UserHomeDir()
+		if err == nil {
+			configPaths = append(configPaths, homeDir+"/.health-checker/config.yaml")
+		}
+		configPaths = append(configPaths, "config.yaml")
+	}
+
+	var config *Config
+	var err error
+	for _, path := range configPaths {
+		config, err = loadConfig(path)
+		if err == nil {
+			break
+		}
+	}
+
+	if config == nil {
+		fmt.Fprintf(os.Stderr, "Could not find valid config file. Tried: %v\n", configPaths)
 		os.Exit(1)
 	}
 
